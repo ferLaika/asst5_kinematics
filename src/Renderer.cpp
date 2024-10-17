@@ -352,26 +352,67 @@ void Renderer::draw_plane(Shader& shader)
 	draw_object(shader, *plane_obj);
 }
 
-void Renderer::draw_bones(Shader& shader, Bone_Animation* m_bone_animation)
-{
-	Object *bone_obj = nullptr;
-	for (unsigned int i = 0; i < obj_list.size(); i++)
-	{
-		if (obj_list[i].obj_name == "cube") {
-			bone_obj = &obj_list[i];
-		}
-	}
-	if (bone_obj == nullptr)
-		return;
-	
-	m_bone_animation->update(delta_time);
+void Renderer::draw_bones(Shader& shader, Bone_Animation* m_bone_animation) {
+    Object *bone_obj = nullptr;
+    for (unsigned int i = 0; i < obj_list.size(); i++) {
+        if (obj_list[i].obj_name == "cube") {
+            bone_obj = &obj_list[i];
+        }
+    }
+    if (bone_obj == nullptr)
+        return;
 
-	// Draw root bone
-	glm::mat4 root_bone_obj_mat = glm::mat4(1.0f);
-	root_bone_obj_mat = glm::translate(root_bone_obj_mat, m_bone_animation->root_position);
-	glUniformMatrix4fv(glGetUniformLocation(shader.program, "model"), 1, GL_FALSE, glm::value_ptr(root_bone_obj_mat));
-	bone_obj->obj_color = m_bone_animation->colors[0];
-	draw_object(shader, *bone_obj);
+    // Update the bone animation to get the current rotation values
+    m_bone_animation->update(delta_time);
+
+    glm::mat4 bone_matrix = glm::mat4(1.0f);
+    
+    // Red bone (root)
+    bone_matrix = glm::rotate(bone_matrix, glm::radians(m_bone_animation->rotation_degree_vector[0].x), glm::vec3(1, 0, 0));
+    bone_matrix = glm::rotate(bone_matrix, glm::radians(m_bone_animation->rotation_degree_vector[0].y), glm::vec3(0, 1, 0));
+    bone_matrix = glm::rotate(bone_matrix, glm::radians(m_bone_animation->rotation_degree_vector[0].z), glm::vec3(0, 0, 1));
+    bone_matrix = glm::translate(bone_matrix, m_bone_animation->root_position);
+
+    // No scaling for red bone
+    glUniformMatrix4fv(glGetUniformLocation(shader.program, "model"), 1, GL_FALSE, glm::value_ptr(bone_matrix));
+    bone_obj->obj_color = m_bone_animation->colors[0]; // red color
+    draw_object(shader, *bone_obj);
+
+    // Yellow bone
+    bone_matrix = glm::translate(bone_matrix, glm::vec3(0.0f, 2.0f, 0.0f)); // Move up to attach to the red bone
+    bone_matrix = glm::rotate(bone_matrix, glm::radians(m_bone_animation->rotation_degree_vector[1].x), glm::vec3(1, 0, 0));
+    bone_matrix = glm::rotate(bone_matrix, glm::radians(m_bone_animation->rotation_degree_vector[1].y), glm::vec3(0, 1, 0));
+    bone_matrix = glm::rotate(bone_matrix, glm::radians(m_bone_animation->rotation_degree_vector[1].z), glm::vec3(0, 0, 1));
+
+    // Scale for yellow bone
+    bone_matrix = glm::scale(bone_matrix, m_bone_animation->scale_vector[1]);
+    glUniformMatrix4fv(glGetUniformLocation(shader.program, "model"), 1, GL_FALSE, glm::value_ptr(bone_matrix));
+    bone_obj->obj_color = m_bone_animation->colors[1]; // yellow color
+    draw_object(shader, *bone_obj);
+
+    // Magenta bone
+    bone_matrix = glm::translate(bone_matrix, glm::vec3(0.0f, 2.0f, 0.0f)); // Move up to attach to the yellow bone
+    bone_matrix = glm::rotate(bone_matrix, glm::radians(m_bone_animation->rotation_degree_vector[2].x), glm::vec3(1, 0, 0));
+    bone_matrix = glm::rotate(bone_matrix, glm::radians(m_bone_animation->rotation_degree_vector[2].y), glm::vec3(0, 1, 0));
+    bone_matrix = glm::rotate(bone_matrix, glm::radians(m_bone_animation->rotation_degree_vector[2].z), glm::vec3(0, 0, 1));
+
+    // Scale for magenta bone
+    bone_matrix = glm::scale(bone_matrix, m_bone_animation->scale_vector[2]);
+    glUniformMatrix4fv(glGetUniformLocation(shader.program, "model"), 1, GL_FALSE, glm::value_ptr(bone_matrix));
+    bone_obj->obj_color = m_bone_animation->colors[2]; // magenta color
+    draw_object(shader, *bone_obj);
+
+    // Cyan bone
+    bone_matrix = glm::translate(bone_matrix, glm::vec3(0.0f, 1.5f, 0.0f)); // Move up to attach to the magenta bone
+    bone_matrix = glm::rotate(bone_matrix, glm::radians(m_bone_animation->rotation_degree_vector[3].x), glm::vec3(1, 0, 0));
+    bone_matrix = glm::rotate(bone_matrix, glm::radians(m_bone_animation->rotation_degree_vector[3].y), glm::vec3(0, 1, 0));
+    bone_matrix = glm::rotate(bone_matrix, glm::radians(m_bone_animation->rotation_degree_vector[3].z), glm::vec3(0, 0, 1));
+
+    // Scale for cyan bone
+    bone_matrix = glm::scale(bone_matrix, m_bone_animation->scale_vector[3]);
+    glUniformMatrix4fv(glGetUniformLocation(shader.program, "model"), 1, GL_FALSE, glm::value_ptr(bone_matrix));
+    bone_obj->obj_color = m_bone_animation->colors[3]; // cyan color
+    draw_object(shader, *bone_obj);
 }
 
 void Renderer::bind_vaovbo(Object &cur_obj)
