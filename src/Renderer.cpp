@@ -21,92 +21,121 @@ Renderer::~Renderer()
 
 void Renderer::nanogui_init(GLFWwindow* window)
 {
-	m_nanogui_screen = new nanogui::Screen();
-	m_nanogui_screen->initialize(window, true);
+    m_nanogui_screen = new nanogui::Screen();
+    m_nanogui_screen->initialize(window, true);
 
-	glViewport(0, 0, m_camera->width, m_camera->height);
+    glViewport(0, 0, m_camera->width, m_camera->height);
 
-	//glfwSwapInterval(0);
-	//glfwSwapBuffers(window);
+    // Create nanogui gui
+    nanogui::FormHelper *gui_1 = new nanogui::FormHelper(m_nanogui_screen);
+    nanogui::ref<nanogui::Window> nanoguiWindow_1 = gui_1->addWindow(Eigen::Vector2i(0, 0), "Nanogui control bar_1");
 
-	// Create nanogui gui
-	nanogui::FormHelper *gui_1 = new nanogui::FormHelper(m_nanogui_screen);
-	nanogui::ref<nanogui::Window> nanoguiWindow_1 = gui_1->addWindow(Eigen::Vector2i(0, 0), "Nanogui control bar_1");
+    // Add camera position controls
+    gui_1->addGroup("Camera Position");
+    static auto camera_x_widget = gui_1->addVariable("X", m_camera->position[0]);
+    static auto camera_y_widget = gui_1->addVariable("Y", m_camera->position[1]);
+    static auto camera_z_widget = gui_1->addVariable("Z", m_camera->position[2]);
 
-	//screen->setPosition(Eigen::Vector2i(-width/2 + 200, -height/2 + 300));
+    // Add Reset Camera button
+    gui_1->addButton("Reset Camera", []() {
+        m_camera->reset();
+        camera_x_widget->setValue(m_camera->position[0]);
+        camera_y_widget->setValue(m_camera->position[1]);
+        camera_z_widget->setValue(m_camera->position[2]);
+    });
 
-	gui_1->addGroup("Camera Position");
-	static auto camera_x_widget = gui_1->addVariable("X", m_camera->position[0]);
-	static auto camera_y_widget = gui_1->addVariable("Y", m_camera->position[1]);
-	static auto camera_z_widget = gui_1->addVariable("Z", m_camera->position[2]);
+    // Adding the bone rotation controls just below the 'Reset Camera' button
+    gui_1->addGroup("Bone Rotation");
 
-	gui_1->addButton("Reset Camera", []() {
-		m_camera->reset();
-		camera_x_widget->setValue(m_camera->position[0]);
-		camera_y_widget->setValue(m_camera->position[1]);
-		camera_z_widget->setValue(m_camera->position[2]);
-	});
+    // Bone rotation on first axis (X1, Y1, Z1)
+    static float rotateX1 = 0.0f;
+    static float rotateY1 = 0.0f;
+    static float rotateZ1 = 30.0f;  // Z1 is set to 30 degrees
+    gui_1->addVariable("Rotate X1", rotateX1);
+    gui_1->addVariable("Rotate Y1", rotateY1);
+    gui_1->addVariable("Rotate Z1", rotateZ1);
 
-	m_nanogui_screen->setVisible(true);
-	m_nanogui_screen->performLayout();
+    // Bone rotation on second axis (X2, Y2, Z2)
+    static float rotateX2 = 0.0f;
+    static float rotateY2 = 0.0f;
+    static float rotateZ2 = 30.0f;  // Z2 is set to 30 degrees
+    gui_1->addVariable("Rotate X2", rotateX2);
+    gui_1->addVariable("Rotate Y2", rotateY2);
+    gui_1->addVariable("Rotate Z2", rotateZ2);
 
-	glfwSetCursorPosCallback(window,
-		[](GLFWwindow *window, double x, double y) {
-		m_nanogui_screen->cursorPosCallbackEvent(x, y);
-	}
-	);
+    // Bone rotation on third axis (X3, Y3, Z3)
+    static float rotateX3 = 0.0f;
+    static float rotateY3 = 0.0f;
+    static float rotateZ3 = 30.0f;  // Z3 is set to 30 degrees
+    gui_1->addVariable("Rotate X3", rotateX3);
+    gui_1->addVariable("Rotate Y3", rotateY3);
+    gui_1->addVariable("Rotate Z3", rotateZ3);
 
-	glfwSetMouseButtonCallback(window,
-		[](GLFWwindow *, int button, int action, int modifiers) {
-		m_nanogui_screen->mouseButtonCallbackEvent(button, action, modifiers);
-	}
-	);
+    // Reset Bone Rotation Button
+    gui_1->addButton("Reset Bone Rotation", [&]() {
+        rotateX1 = rotateY1 = rotateX2 = rotateY2 = rotateX3 = rotateY3 = 0.0f;
+        rotateZ1 = 30.0f; rotateZ2 = 30.0f; rotateZ3 = 30.0f;
+    });
 
-	glfwSetKeyCallback(window,
-		[](GLFWwindow *window, int key, int scancode, int action, int mods) {
-		//screen->keyCallbackEvent(key, scancode, action, mods);
+    // Set the screen visible and perform layout
+    m_nanogui_screen->setVisible(true);
+    m_nanogui_screen->performLayout();
 
-		if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-			glfwSetWindowShouldClose(window, GL_TRUE);
-		if (key >= 0 && key < 1024)
-		{
-			if (action == GLFW_PRESS)
-				keys[key] = true;
-			else if (action == GLFW_RELEASE)
-				keys[key] = false;
-		}
-		camera_x_widget->setValue(m_camera->position[0]);
-		camera_y_widget->setValue(m_camera->position[1]);
-		camera_z_widget->setValue(m_camera->position[2]);
-	}
-	);
+    // Nanogui callbacks for various input events
+    glfwSetCursorPosCallback(window,
+        [](GLFWwindow *window, double x, double y) {
+            m_nanogui_screen->cursorPosCallbackEvent(x, y);
+        }
+    );
 
-	glfwSetCharCallback(window,
-		[](GLFWwindow *, unsigned int codepoint) {
-		m_nanogui_screen->charCallbackEvent(codepoint);
-	}
-	);
+    glfwSetMouseButtonCallback(window,
+        [](GLFWwindow *, int button, int action, int modifiers) {
+            m_nanogui_screen->mouseButtonCallbackEvent(button, action, modifiers);
+        }
+    );
 
-	glfwSetDropCallback(window,
-		[](GLFWwindow *, int count, const char **filenames) {
-		m_nanogui_screen->dropCallbackEvent(count, filenames);
-	}
-	);
+    glfwSetKeyCallback(window,
+        [](GLFWwindow *window, int key, int scancode, int action, int mods) {
+            if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+                glfwSetWindowShouldClose(window, GL_TRUE);
+            if (key >= 0 && key < 1024)
+            {
+                if (action == GLFW_PRESS)
+                    keys[key] = true;
+                else if (action == GLFW_RELEASE)
+                    keys[key] = false;
+            }
+            camera_x_widget->setValue(m_camera->position[0]);
+            camera_y_widget->setValue(m_camera->position[1]);
+            camera_z_widget->setValue(m_camera->position[2]);
+        }
+    );
 
-	glfwSetScrollCallback(window,
-		[](GLFWwindow *, double x, double y) {
-		m_nanogui_screen->scrollCallbackEvent(x, y);
-		//m_camera->ProcessMouseScroll(y);
-	}
-	);
+    glfwSetCharCallback(window,
+        [](GLFWwindow *, unsigned int codepoint) {
+            m_nanogui_screen->charCallbackEvent(codepoint);
+        }
+    );
 
-	glfwSetFramebufferSizeCallback(window,
-		[](GLFWwindow *, int width, int height) {
-		m_nanogui_screen->resizeCallbackEvent(width, height);
-	}
-	);
+    glfwSetDropCallback(window,
+        [](GLFWwindow *, int count, const char **filenames) {
+            m_nanogui_screen->dropCallbackEvent(count, filenames);
+        }
+    );
 
+    glfwSetScrollCallback(window,
+        [](GLFWwindow *, double x, double y) {
+            m_nanogui_screen->scrollCallbackEvent(x, y);
+        }
+    );
+
+    glfwSetFramebufferSizeCallback(window,
+        [](GLFWwindow *, int width, int height) {
+            m_nanogui_screen->resizeCallbackEvent(width, height);
+        }
+    );
 }
+
 
 void Renderer::init()
 {
@@ -352,68 +381,55 @@ void Renderer::draw_plane(Shader& shader)
 	draw_object(shader, *plane_obj);
 }
 
-void Renderer::draw_bones(Shader& shader, Bone_Animation* m_bone_animation) {
+void Renderer::draw_bones(Shader& shader, Bone_Animation* m_bone_animation)
+{
     Object *bone_obj = nullptr;
-    for (unsigned int i = 0; i < obj_list.size(); i++) {
+    for (unsigned int i = 0; i < obj_list.size(); i++)
+    {
         if (obj_list[i].obj_name == "cube") {
             bone_obj = &obj_list[i];
         }
     }
     if (bone_obj == nullptr)
         return;
-
-    // Update the bone animation to get the current rotation values
+    
     m_bone_animation->update(delta_time);
 
-    glm::mat4 bone_matrix = glm::mat4(1.0f);
-    
-    // Red bone (root)
-    bone_matrix = glm::rotate(bone_matrix, glm::radians(m_bone_animation->rotation_degree_vector[0].x), glm::vec3(1, 0, 0));
-    bone_matrix = glm::rotate(bone_matrix, glm::radians(m_bone_animation->rotation_degree_vector[0].y), glm::vec3(0, 1, 0));
-    bone_matrix = glm::rotate(bone_matrix, glm::radians(m_bone_animation->rotation_degree_vector[0].z), glm::vec3(0, 0, 1));
-    bone_matrix = glm::translate(bone_matrix, m_bone_animation->root_position);
-
-    // No scaling for red bone
-    glUniformMatrix4fv(glGetUniformLocation(shader.program, "model"), 1, GL_FALSE, glm::value_ptr(bone_matrix));
-    bone_obj->obj_color = m_bone_animation->colors[0]; // red color
+    // Draw root bone (red)
+    glm::mat4 root_bone_mat = glm::mat4(1.0f);
+    root_bone_mat = glm::translate(root_bone_mat, m_bone_animation->root_position);
+    glUniformMatrix4fv(glGetUniformLocation(shader.program, "model"), 1, GL_FALSE, glm::value_ptr(root_bone_mat));
+    bone_obj->obj_color = m_bone_animation->colors[0]; // Red
     draw_object(shader, *bone_obj);
 
-    // Yellow bone
-    bone_matrix = glm::translate(bone_matrix, glm::vec3(0.0f, 2.0f, 0.0f)); // Move up to attach to the red bone
-    bone_matrix = glm::rotate(bone_matrix, glm::radians(m_bone_animation->rotation_degree_vector[1].x), glm::vec3(1, 0, 0));
-    bone_matrix = glm::rotate(bone_matrix, glm::radians(m_bone_animation->rotation_degree_vector[1].y), glm::vec3(0, 1, 0));
-    bone_matrix = glm::rotate(bone_matrix, glm::radians(m_bone_animation->rotation_degree_vector[1].z), glm::vec3(0, 0, 1));
-
-    // Scale for yellow bone
-    bone_matrix = glm::scale(bone_matrix, m_bone_animation->scale_vector[1]);
-    glUniformMatrix4fv(glGetUniformLocation(shader.program, "model"), 1, GL_FALSE, glm::value_ptr(bone_matrix));
-    bone_obj->obj_color = m_bone_animation->colors[1]; // yellow color
+    // Draw first bone (yellow) - Should start at top of red cube
+    glm::mat4 yellow_bone_mat = root_bone_mat;
+    yellow_bone_mat = glm::translate(yellow_bone_mat, glm::vec3(0.0f, 0.5f, 0.0f)); // Move to top of red cube
+    yellow_bone_mat = glm::translate(yellow_bone_mat, glm::vec3(0.0f, 2.0f, 0.0f)); // Move up by half of yellow bone's height
+    yellow_bone_mat = glm::scale(yellow_bone_mat, glm::vec3(0.5f, 4.0f, 0.5f));
+    glUniformMatrix4fv(glGetUniformLocation(shader.program, "model"), 1, GL_FALSE, glm::value_ptr(yellow_bone_mat));
+    bone_obj->obj_color = glm::vec4(1.0f, 1.0f, 0.0f, 1.0f); // Yellow
     draw_object(shader, *bone_obj);
 
-    // Magenta bone
-    bone_matrix = glm::translate(bone_matrix, glm::vec3(0.0f, 2.0f, 0.0f)); // Move up to attach to the yellow bone
-    bone_matrix = glm::rotate(bone_matrix, glm::radians(m_bone_animation->rotation_degree_vector[2].x), glm::vec3(1, 0, 0));
-    bone_matrix = glm::rotate(bone_matrix, glm::radians(m_bone_animation->rotation_degree_vector[2].y), glm::vec3(0, 1, 0));
-    bone_matrix = glm::rotate(bone_matrix, glm::radians(m_bone_animation->rotation_degree_vector[2].z), glm::vec3(0, 0, 1));
-
-    // Scale for magenta bone
-    bone_matrix = glm::scale(bone_matrix, m_bone_animation->scale_vector[2]);
-    glUniformMatrix4fv(glGetUniformLocation(shader.program, "model"), 1, GL_FALSE, glm::value_ptr(bone_matrix));
-    bone_obj->obj_color = m_bone_animation->colors[2]; // magenta color
+    // Draw second bone (magenta) - Should start at top of yellow bone
+    glm::mat4 magenta_bone_mat = root_bone_mat;
+    magenta_bone_mat = glm::translate(magenta_bone_mat, glm::vec3(0.0f, 4.5f, 0.0f)); // Move to top of yellow bone
+    magenta_bone_mat = glm::translate(magenta_bone_mat, glm::vec3(0.0f, 1.5f, 0.0f)); // Move up by half of magenta bone's height
+    magenta_bone_mat = glm::scale(magenta_bone_mat, glm::vec3(0.5f, 3.0f, 0.5f));
+    glUniformMatrix4fv(glGetUniformLocation(shader.program, "model"), 1, GL_FALSE, glm::value_ptr(magenta_bone_mat));
+    bone_obj->obj_color = glm::vec4(1.0f, 0.0f, 1.0f, 1.0f); // Magenta
     draw_object(shader, *bone_obj);
 
-    // Cyan bone
-    bone_matrix = glm::translate(bone_matrix, glm::vec3(0.0f, 1.5f, 0.0f)); // Move up to attach to the magenta bone
-    bone_matrix = glm::rotate(bone_matrix, glm::radians(m_bone_animation->rotation_degree_vector[3].x), glm::vec3(1, 0, 0));
-    bone_matrix = glm::rotate(bone_matrix, glm::radians(m_bone_animation->rotation_degree_vector[3].y), glm::vec3(0, 1, 0));
-    bone_matrix = glm::rotate(bone_matrix, glm::radians(m_bone_animation->rotation_degree_vector[3].z), glm::vec3(0, 0, 1));
-
-    // Scale for cyan bone
-    bone_matrix = glm::scale(bone_matrix, m_bone_animation->scale_vector[3]);
-    glUniformMatrix4fv(glGetUniformLocation(shader.program, "model"), 1, GL_FALSE, glm::value_ptr(bone_matrix));
-    bone_obj->obj_color = m_bone_animation->colors[3]; // cyan color
+    // Draw third bone (cyan) - Should start at top of magenta bone
+    glm::mat4 cyan_bone_mat = root_bone_mat;
+    cyan_bone_mat = glm::translate(cyan_bone_mat, glm::vec3(0.0f, 7.5f, 0.0f)); // Move to top of magenta bone
+    cyan_bone_mat = glm::translate(cyan_bone_mat, glm::vec3(0.0f, 1.0f, 0.0f)); // Move up by half of cyan bone's height
+    cyan_bone_mat = glm::scale(cyan_bone_mat, glm::vec3(0.5f, 2.0f, 0.5f));
+    glUniformMatrix4fv(glGetUniformLocation(shader.program, "model"), 1, GL_FALSE, glm::value_ptr(cyan_bone_mat));
+    bone_obj->obj_color = glm::vec4(0.0f, 1.0f, 1.0f, 1.0f); // Cyan
     draw_object(shader, *bone_obj);
 }
+
 
 void Renderer::bind_vaovbo(Object &cur_obj)
 {
