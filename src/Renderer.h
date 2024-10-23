@@ -46,7 +46,15 @@ public:
 
 	static bool keys[1024];
 
+
+
 public:
+
+	 // Rotation variables
+    float rotateX1, rotateY1, rotateZ1;
+    float rotateX2, rotateY2, rotateZ2;
+    float rotateX3, rotateY3, rotateZ3;
+
 	Renderer();
 	~Renderer();
 

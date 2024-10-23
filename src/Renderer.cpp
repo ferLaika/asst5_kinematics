@@ -44,37 +44,29 @@ void Renderer::nanogui_init(GLFWwindow* window)
         camera_z_widget->setValue(m_camera->position[2]);
     });
 
-    // Adding the bone rotation controls just below the 'Reset Camera' button
+        // Add bone rotation controls
     gui_1->addGroup("Bone Rotation");
 
     // Bone rotation on first axis (X1, Y1, Z1)
-    static float rotateX1 = 0.0f;
-    static float rotateY1 = 0.0f;
-    static float rotateZ1 = 0.0f;  
     gui_1->addVariable("Rotate X1", rotateX1);
     gui_1->addVariable("Rotate Y1", rotateY1);
     gui_1->addVariable("Rotate Z1", rotateZ1);
 
     // Bone rotation on second axis (X2, Y2, Z2)
-    static float rotateX2 = 0.0f;
-    static float rotateY2 = 0.0f;
-    static float rotateZ2 = 0.0f;
     gui_1->addVariable("Rotate X2", rotateX2);
     gui_1->addVariable("Rotate Y2", rotateY2);
     gui_1->addVariable("Rotate Z2", rotateZ2);
 
     // Bone rotation on third axis (X3, Y3, Z3)
-    static float rotateX3 = 0.0f;
-    static float rotateY3 = 0.0f;
-    static float rotateZ3 = 0.0f;  
     gui_1->addVariable("Rotate X3", rotateX3);
     gui_1->addVariable("Rotate Y3", rotateY3);
     gui_1->addVariable("Rotate Z3", rotateZ3);
 
     // Reset Bone Rotation Button
-    gui_1->addButton("Reset Bone Rotation", [&]() {
-        rotateX1 = rotateY1 = rotateX2 = rotateY2 = rotateX3 = rotateY3 = 0.0f;
-        rotateZ1 = 0.0f; rotateZ2 = 0.0f; rotateZ3 = 0.0f;
+    gui_1->addButton("Reset Bone Rotation", [this]() {
+        rotateX1 = rotateY1 = rotateZ1 = 0.0f;
+        rotateX2 = rotateY2 = rotateZ2 = 0.0f;
+        rotateX3 = rotateY3 = rotateZ3 = 0.0f;
     });
 
     // Set the screen visible and perform layout
@@ -395,41 +387,62 @@ void Renderer::draw_bones(Shader& shader, Bone_Animation* m_bone_animation)
     
     m_bone_animation->update(delta_time);
 
-    // Draw root bone (red)
+    // Root bone (red)
     glm::mat4 root_bone_mat = glm::mat4(1.0f);
     root_bone_mat = glm::translate(root_bone_mat, m_bone_animation->root_position);
     glUniformMatrix4fv(glGetUniformLocation(shader.program, "model"), 1, GL_FALSE, glm::value_ptr(root_bone_mat));
-    bone_obj->obj_color = m_bone_animation->colors[0]; // Red
+    bone_obj->obj_color = m_bone_animation->colors[0];
     draw_object(shader, *bone_obj);
 
-    // Draw first bone (yellow) - Should start at top of red cube
+    // First bone (yellow) with rotation
     glm::mat4 yellow_bone_mat = root_bone_mat;
-    yellow_bone_mat = glm::translate(yellow_bone_mat, glm::vec3(0.0f, 0.5f, 0.0f)); // Move to top of red cube
-    yellow_bone_mat = glm::translate(yellow_bone_mat, glm::vec3(0.0f, 2.0f, 0.0f)); // Move up by half of yellow bone's height
+    // Move to pivot point (top of red cube)
+    yellow_bone_mat = glm::translate(yellow_bone_mat, glm::vec3(0.0f, 0.5f, 0.0f));
+    // Apply rotations around pivot
+    yellow_bone_mat = glm::rotate(yellow_bone_mat, glm::radians(rotateX1), glm::vec3(1.0f, 0.0f, 0.0f));
+    yellow_bone_mat = glm::rotate(yellow_bone_mat, glm::radians(rotateY1), glm::vec3(0.0f, 1.0f, 0.0f));
+    yellow_bone_mat = glm::rotate(yellow_bone_mat, glm::radians(rotateZ1), glm::vec3(0.0f, 0.0f, 1.0f));
+    // Store the transformation for child bones
+    glm::mat4 yellow_transform = yellow_bone_mat;
+    // Move and scale the bone
+    yellow_bone_mat = glm::translate(yellow_bone_mat, glm::vec3(0.0f, 2.0f, 0.0f));
     yellow_bone_mat = glm::scale(yellow_bone_mat, glm::vec3(0.5f, 4.0f, 0.5f));
     glUniformMatrix4fv(glGetUniformLocation(shader.program, "model"), 1, GL_FALSE, glm::value_ptr(yellow_bone_mat));
-    bone_obj->obj_color = glm::vec4(1.0f, 1.0f, 0.0f, 1.0f); // Yellow
+    bone_obj->obj_color = glm::vec4(1.0f, 1.0f, 0.0f, 1.0f);
     draw_object(shader, *bone_obj);
 
-    // Draw second bone (magenta) - Should start at top of yellow bone
-    glm::mat4 magenta_bone_mat = root_bone_mat;
-    magenta_bone_mat = glm::translate(magenta_bone_mat, glm::vec3(0.0f, 4.5f, 0.0f)); // Move to top of yellow bone
-    magenta_bone_mat = glm::translate(magenta_bone_mat, glm::vec3(0.0f, 1.5f, 0.0f)); // Move up by half of magenta bone's height
+    // Second bone (magenta) with inherited and local rotation
+    glm::mat4 magenta_bone_mat = yellow_transform;  // Start from parent's transformed position
+    // Move to pivot point (top of yellow bone)
+    magenta_bone_mat = glm::translate(magenta_bone_mat, glm::vec3(0.0f, 4.0f, 0.0f));
+    // Apply local rotations
+    magenta_bone_mat = glm::rotate(magenta_bone_mat, glm::radians(rotateX2), glm::vec3(1.0f, 0.0f, 0.0f));
+    magenta_bone_mat = glm::rotate(magenta_bone_mat, glm::radians(rotateY2), glm::vec3(0.0f, 1.0f, 0.0f));
+    magenta_bone_mat = glm::rotate(magenta_bone_mat, glm::radians(rotateZ2), glm::vec3(0.0f, 0.0f, 1.0f));
+    // Store transformation for child bone
+    glm::mat4 magenta_transform = magenta_bone_mat;
+    // Move and scale the bone
+    magenta_bone_mat = glm::translate(magenta_bone_mat, glm::vec3(0.0f, 1.5f, 0.0f));
     magenta_bone_mat = glm::scale(magenta_bone_mat, glm::vec3(0.5f, 3.0f, 0.5f));
     glUniformMatrix4fv(glGetUniformLocation(shader.program, "model"), 1, GL_FALSE, glm::value_ptr(magenta_bone_mat));
-    bone_obj->obj_color = glm::vec4(1.0f, 0.0f, 1.0f, 1.0f); // Magenta
+    bone_obj->obj_color = glm::vec4(1.0f, 0.0f, 1.0f, 1.0f);
     draw_object(shader, *bone_obj);
 
-    // Draw third bone (cyan) - Should start at top of magenta bone
-    glm::mat4 cyan_bone_mat = root_bone_mat;
-    cyan_bone_mat = glm::translate(cyan_bone_mat, glm::vec3(0.0f, 7.5f, 0.0f)); // Move to top of magenta bone
-    cyan_bone_mat = glm::translate(cyan_bone_mat, glm::vec3(0.0f, 1.0f, 0.0f)); // Move up by half of cyan bone's height
+    // Third bone (cyan) with inherited and local rotation
+    glm::mat4 cyan_bone_mat = magenta_transform;  // Start from parent's transformed position
+    // Move to pivot point (top of magenta bone)
+    cyan_bone_mat = glm::translate(cyan_bone_mat, glm::vec3(0.0f, 3.0f, 0.0f));
+    // Apply local rotations
+    cyan_bone_mat = glm::rotate(cyan_bone_mat, glm::radians(rotateX3), glm::vec3(1.0f, 0.0f, 0.0f));
+    cyan_bone_mat = glm::rotate(cyan_bone_mat, glm::radians(rotateY3), glm::vec3(0.0f, 1.0f, 0.0f));
+    cyan_bone_mat = glm::rotate(cyan_bone_mat, glm::radians(rotateZ3), glm::vec3(0.0f, 0.0f, 1.0f));
+    // Move and scale the bone
+    cyan_bone_mat = glm::translate(cyan_bone_mat, glm::vec3(0.0f, 1.0f, 0.0f));
     cyan_bone_mat = glm::scale(cyan_bone_mat, glm::vec3(0.5f, 2.0f, 0.5f));
     glUniformMatrix4fv(glGetUniformLocation(shader.program, "model"), 1, GL_FALSE, glm::value_ptr(cyan_bone_mat));
-    bone_obj->obj_color = glm::vec4(0.0f, 1.0f, 1.0f, 1.0f); // Cyan
+    bone_obj->obj_color = glm::vec4(0.0f, 1.0f, 1.0f, 1.0f);
     draw_object(shader, *bone_obj);
 }
-
 
 void Renderer::bind_vaovbo(Object &cur_obj)
 {
