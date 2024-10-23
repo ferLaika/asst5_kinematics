@@ -1,5 +1,7 @@
 #include "Renderer.h"
-
+//Fernando de Salvidea
+//FXD210003
+//Assignment3 Animation
 Camera* Renderer::m_camera = new Camera();
 
 Lighting* Renderer::m_lightings = new Lighting();

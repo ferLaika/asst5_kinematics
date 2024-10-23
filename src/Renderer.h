@@ -1,5 +1,7 @@
 #pragma once
-
+//Fernando de Salvidea
+//FXD210003
+//Assignment3 Animation
 #include <iostream>
 
 #define GLEW_STATIC

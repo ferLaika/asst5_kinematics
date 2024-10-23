@@ -1,5 +1,7 @@
 #include "Bone_Animation.h"
-
+//Fernando de Salvidea
+//FXD210003
+//Assignment3 Animation
 
 
 Bone_Animation::Bone_Animation()
