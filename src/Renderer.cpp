@@ -50,7 +50,7 @@ void Renderer::nanogui_init(GLFWwindow* window)
     // Bone rotation on first axis (X1, Y1, Z1)
     static float rotateX1 = 0.0f;
     static float rotateY1 = 0.0f;
-    static float rotateZ1 = 30.0f;  // Z1 is set to 30 degrees
+    static float rotateZ1 = 0.0f;  
     gui_1->addVariable("Rotate X1", rotateX1);
     gui_1->addVariable("Rotate Y1", rotateY1);
     gui_1->addVariable("Rotate Z1", rotateZ1);
@@ -58,7 +58,7 @@ void Renderer::nanogui_init(GLFWwindow* window)
     // Bone rotation on second axis (X2, Y2, Z2)
     static float rotateX2 = 0.0f;
     static float rotateY2 = 0.0f;
-    static float rotateZ2 = 30.0f;  // Z2 is set to 30 degrees
+    static float rotateZ2 = 0.0f;
     gui_1->addVariable("Rotate X2", rotateX2);
     gui_1->addVariable("Rotate Y2", rotateY2);
     gui_1->addVariable("Rotate Z2", rotateZ2);
@@ -66,7 +66,7 @@ void Renderer::nanogui_init(GLFWwindow* window)
     // Bone rotation on third axis (X3, Y3, Z3)
     static float rotateX3 = 0.0f;
     static float rotateY3 = 0.0f;
-    static float rotateZ3 = 30.0f;  // Z3 is set to 30 degrees
+    static float rotateZ3 = 0.0f;  
     gui_1->addVariable("Rotate X3", rotateX3);
     gui_1->addVariable("Rotate Y3", rotateY3);
     gui_1->addVariable("Rotate Z3", rotateZ3);
@@ -74,7 +74,7 @@ void Renderer::nanogui_init(GLFWwindow* window)
     // Reset Bone Rotation Button
     gui_1->addButton("Reset Bone Rotation", [&]() {
         rotateX1 = rotateY1 = rotateX2 = rotateY2 = rotateX3 = rotateY3 = 0.0f;
-        rotateZ1 = 30.0f; rotateZ2 = 30.0f; rotateZ3 = 30.0f;
+        rotateZ1 = 0.0f; rotateZ2 = 0.0f; rotateZ3 = 0.0f;
     });
 
     // Set the screen visible and perform layout
